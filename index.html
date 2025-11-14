@@ -5,18 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Clickstream Video Player</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        /* Default to dark theme */
+        --brand-bg: #121212;
+        --component-bg: #1e1e1e;
+        --component-bg-hover: #2a2a2a;
+        --border-color: #3e3e3e;
+        --text-primary: #ffffff;
+        --text-secondary: #aaaaaa;
+        --accent-blue: #3ea6ff;
+      }
+      html[data-theme='light'] {
+        --brand-bg: #f9f9f9;
+        --component-bg: #ffffff;
+        --component-bg-hover: #f2f2f2;
+        --border-color: #e0e0e0;
+        --text-primary: #0f0f0f;
+        --text-secondary: #606060;
+        --accent-blue: #065fd4;
+      }
+      body {
+        /* Add a transition for smooth color changes */
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      .bg-component-bg, .border-border-color {
+         transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+    </style>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              'brand-bg': '#121212',
-              'component-bg': '#1e1e1e',
-              'component-bg-hover': '#2a2a2a',
-              'border-color': '#3e3e3e',
-              'text-primary': '#ffffff',
-              'text-secondary': '#aaaaaa',
-              'accent-blue': '#3ea6ff',
+              'brand-bg': 'var(--brand-bg)',
+              'component-bg': 'var(--component-bg)',
+              'component-bg-hover': 'var(--component-bg-hover)',
+              'border-color': 'var(--border-color)',
+              'text-primary': 'var(--text-primary)',
+              'text-secondary': 'var(--text-secondary)',
+              'accent-blue': 'var(--accent-blue)',
             }
           }
         }
@@ -78,7 +106,7 @@ You can edit the video details by modifying the 'VIDEO_DATA' object.`,
         likes: 482,
       };
 
-      // === From components/VideoPlayer.tsx ===
+      // === UI Icons ===
       const PlayIcon = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>);
       const PauseIcon = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>);
       const VolumeMuteIcon = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5zm11.5 0v6a2.5 2.5 0 0 1-5 0V9h5z" clipRule="evenodd" fillRule="evenodd"/></svg>);
@@ -93,7 +121,10 @@ You can edit the video details by modifying the 'VIDEO_DATA' object.`,
       const FrameBackIcon = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18V6l8.5 6L6 18zm6.5-6L18 6v12l-5.5-6z" transform="scale(-1, 1) translate(-24, 0)"/></svg>);
       const FrameForwardIcon = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm8.5-6L18 6v12l-3.5-6z"/></svg>);
       const BookmarkIcon = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>);
+      const SunIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>);
+      const MoonIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>);
 
+      // === From components/VideoPlayer.tsx ===
       const formatTime = (timeInSeconds) => {
         if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
         const date = new Date(0);
@@ -604,6 +635,7 @@ You can edit the video details by modifying the 'VIDEO_DATA' object.`,
         const [videoData, setVideoData] = useState(VIDEO_DATA);
         const [clickstreamEvents, setClickstreamEvents] = useState([]);
         const [videoUrl, setVideoUrl] = useState(null);
+        const [theme, setTheme] = useState(() => localStorage.getItem('videoPlayerTheme') || 'dark');
 
         const logEvent = useCallback((type, target, details) => {
           const newEvent = {
@@ -617,7 +649,18 @@ You can edit the video details by modifying the 'VIDEO_DATA' object.`,
         
         useEffect(() => {
           logEvent('app_load', 'application_root');
-        }, []);
+        }, [logEvent]);
+
+        useEffect(() => {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('videoPlayerTheme', theme);
+        }, [theme]);
+        
+        const toggleTheme = () => {
+          const newTheme = theme === 'dark' ? 'light' : 'dark';
+          setTheme(newTheme);
+          logEvent('theme_change', 'theme_switcher', { theme: newTheme });
+        };
 
         const handleFileSelect = (event) => {
           const file = event.target.files?.[0];
@@ -684,13 +727,22 @@ You can edit the video details by modifying the 'VIDEO_DATA' object.`,
           <div className="min-h-screen bg-brand-bg text-text-primary font-sans">
             <header className="p-4 bg-component-bg border-b border-border-color shadow-lg flex justify-between items-center sticky top-0 z-10">
               <h1 className="text-xl md:text-2xl font-bold">Local Video Player</h1>
-              <button
-                onClick={handleDownloadCSV}
-                className="bg-accent-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
-                aria-label="Download clickstream event log as CSV"
-              >
-                Download Event Log
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-full hover:bg-component-bg-hover text-text-primary transition-colors"
+                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                  {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                </button>
+                <button
+                  onClick={handleDownloadCSV}
+                  className="bg-accent-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                  aria-label="Download clickstream event log as CSV"
+                >
+                  Download Event Log
+                </button>
+              </div>
             </header>
             <main className="container mx-auto p-4 lg:p-6 flex justify-center">
               <div className="w-full max-w-5xl">
