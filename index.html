@@ -910,6 +910,17 @@ Licensed under the Creative Commons Attribution 3.0 license.
           logEvent('theme_change', 'theme_switcher', { theme: newTheme });
         };
         
+        const handleResetStats = () => {
+          if (window.confirm('Are you sure you want to reset all views, likes, and dislikes? This will clear all user data and you will be logged out.')) {
+            logEvent('stats_reset', 'reset_button');
+            setAllUsers({});
+            localStorage.removeItem(`bookmarks_${VIDEO_DATA.id}`);
+            setCurrentUser(null);
+            setCurrentPage('login');
+            saveData({ users: {}, currentUser: null, currentPage: 'login' });
+          }
+        };
+
         if (currentPage === 'login') {
           return <LoginPage onLogin={handleLogin} />;
         }
@@ -932,6 +943,7 @@ Licensed under the Creative Commons Attribution 3.0 license.
                   Welcome, <span className="font-bold text-text-primary">{currentUser}</span>
                 </div>
                 <button onClick={handleLogout} className="text-sm font-semibold text-accent-blue hover:underline">Logout</button>
+                <button onClick={handleResetStats} className="text-sm font-semibold text-red-500 hover:underline">Reset Stats</button>
                 <div className="w-px h-6 bg-border-color"></div>
                 <button
                   onClick={toggleTheme}
