@@ -1,0 +1,5 @@
+{
+  "name": "Clickstream Video Player",
+  "description": "A YouTube-like video player that demonstrates clickstream data collection for user interactions. Watch videos and see your actions logged in real-time.",
+  "requestFramePermissions": []
+}
